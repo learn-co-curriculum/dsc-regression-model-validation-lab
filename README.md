@@ -44,23 +44,89 @@ boston_features["LSTAT"] = (loglstat-np.mean(loglstat))/np.sqrt(np.var(loglstat)
 
 ```python
 X = boston_features[['CHAS', 'RM', 'DIS', 'B', 'LSTAT']]
-y = None
+y = pd.DataFrame(boston.target,columns = ["target"])
 ```
 
 ## Perform a train-test-split
+
+
+```python
+from sklearn.model_selection import train_test_split
+```
+
+
+```python
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+```
+
+
+```python
+#A brief preview of our train test split
+print(len(X_train), len(X_test), len(y_train), len(y_test))
+```
+
+    379 127 379 127
+
 
 ## Apply your model to the train set
 
 #### Importing and initializing the model class
 
+
+```python
+from sklearn.linear_model import LinearRegression
+linreg = LinearRegression()
+```
+
 #### Fitting the model to the train data
+
+
+```python
+linreg.fit(X_train, y_train)
+```
+
+
+
+
+    LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False)
+
+
 
 #### Calculating predictions on the train set, and on the test set
 
+
+```python
+y_hat_train = linreg.predict(X_train)
+y_hat_test = linreg.predict(X_test)
+```
+
 #### Calculating your residuals
+
+
+```python
+train_residuals = y_hat_train - y_train
+test_residuals = y_hat_test - y_test
+```
 
 #### Calculating the Mean Squared Error
 A good way to compare overall performance is to compare the mean squarred error for the predicted values on the train and test sets.
+
+
+```python
+from sklearn.metrics import mean_squared_error
+```
+
+
+```python
+train_mse = mean_squared_error(y_train, y_hat_train)
+test_mse = mean_squared_error(y_test, y_hat_test)
+print('Train Mean Squarred Error:', train_mse)
+print('Test Mean Squarred Error:', test_mse)
+```
+
+    Train Mean Squarred Error: 21.620204537961026
+    Test Mean Squarred Error: 22.547316698156916
+
 
 If your test error is substantially worse then our train error, this is a sign that our model doesn't generalize well to future cases.
 
@@ -72,7 +138,22 @@ Iterate over a range of train-test split sizes from .5 to .95. For each of these
 
 
 ```python
+import random
+random.seed(11)
 
+train_err = []
+test_err = []
+t_sizes = list(range(5,100,5))
+for t_size in t_sizes:
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=t_size/100)
+    linreg.fit(X_train, y_train)
+    y_hat_train = linreg.predict(X_train)
+    y_hat_test = linreg.predict(X_test)
+    train_err.append(mean_squared_error(y_train, y_hat_train))
+    test_err.append(mean_squared_error(y_test, y_hat_test))
+plt.scatter(t_sizes, train_err, label='Training Error')
+plt.scatter(t_sizes, test_err, label='Testing Error')
+plt.legend()
 ```
 
 
@@ -83,7 +164,7 @@ Iterate over a range of train-test split sizes from .5 to .95. For each of these
 
 
 
-![png](index_files/index_14_1.png)
+![png](index_files/index_23_1.png)
 
 
 # Evaluating the effect of train-test split size: extension
@@ -92,7 +173,26 @@ Repeat the previous example, but for each train-test split size, generate 100 it
 
 
 ```python
+random.seed(8)
 
+train_err = []
+test_err = []
+t_sizes = list(range(5,100,5))
+for t_size in t_sizes:
+    temp_train_err = []
+    temp_test_err = []
+    for i in range(100):
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=t_size/100)
+        linreg.fit(X_train, y_train)
+        y_hat_train = linreg.predict(X_train)
+        y_hat_test = linreg.predict(X_test)
+        temp_train_err.append(mean_squared_error(y_train, y_hat_train))
+        temp_test_err.append(mean_squared_error(y_test, y_hat_test))
+    train_err.append(np.mean(temp_train_err))
+    test_err.append(np.mean(temp_test_err))
+plt.scatter(t_sizes, train_err, label='Training Error')
+plt.scatter(t_sizes, test_err, label='Testing Error')
+plt.legend()
 ```
 
 
@@ -103,7 +203,7 @@ Repeat the previous example, but for each train-test split size, generate 100 it
 
 
 
-![png](index_files/index_16_1.png)
+![png](index_files/index_25_1.png)
 
 
 What's happening here? evaluate your result!
