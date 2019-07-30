@@ -47,20 +47,161 @@ X = boston_features[['CHAS', 'RM', 'DIS', 'B', 'LSTAT']]
 y = None
 ```
 
+
+```python
+# __SOLUTION__ 
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+from sklearn.datasets import load_boston
+
+boston = load_boston()
+
+boston_features = pd.DataFrame(boston.data, columns = boston.feature_names)
+b = boston_features["B"]
+logdis = np.log(boston_features["DIS"])
+loglstat = np.log(boston_features["LSTAT"])
+
+# minmax scaling
+boston_features["B"] = (b-min(b))/(max(b)-min(b))
+boston_features["DIS"] = (logdis-min(logdis))/(max(logdis)-min(logdis))
+
+#standardization
+boston_features["LSTAT"] = (loglstat-np.mean(loglstat))/np.sqrt(np.var(loglstat))
+```
+
+
+```python
+# __SOLUTION__ 
+X = boston_features[['CHAS', 'RM', 'DIS', 'B', 'LSTAT']]
+y = pd.DataFrame(boston.target,columns = ["target"])
+```
+
 ## Perform a train-test-split
+
+
+```python
+
+```
+
+
+```python
+# __SOLUTION__ 
+from sklearn.model_selection import train_test_split
+```
+
+
+```python
+# __SOLUTION__ 
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+```
+
+
+```python
+# __SOLUTION__ 
+#A brief preview of our train test split
+print(len(X_train), len(X_test), len(y_train), len(y_test))
+```
+
+    379 127 379 127
+
 
 ## Apply your model to the train set
 
 #### Importing and initializing the model class
 
+
+```python
+
+```
+
+
+```python
+# __SOLUTION__ 
+from sklearn.linear_model import LinearRegression
+linreg = LinearRegression()
+```
+
 #### Fitting the model to the train data
+
+
+```python
+
+```
+
+
+```python
+# __SOLUTION__ 
+linreg.fit(X_train, y_train)
+```
+
+
+
+
+    LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False)
+
+
 
 #### Calculating predictions on the train set, and on the test set
 
+
+```python
+
+```
+
+
+```python
+# __SOLUTION__ 
+y_hat_train = linreg.predict(X_train)
+y_hat_test = linreg.predict(X_test)
+```
+
 #### Calculating your residuals
+
+
+```python
+
+```
+
+
+```python
+# __SOLUTION__ 
+train_residuals = y_hat_train - y_train
+test_residuals = y_hat_test - y_test
+```
 
 #### Calculating the Mean Squared Error
 A good way to compare overall performance is to compare the mean squarred error for the predicted values on the train and test sets.
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+# __SOLUTION__ 
+from sklearn.metrics import mean_squared_error
+```
+
+
+```python
+# __SOLUTION__ 
+train_mse = mean_squared_error(y_train, y_hat_train)
+test_mse = mean_squared_error(y_test, y_hat_test)
+print('Train Mean Squarred Error:', train_mse)
+print('Test Mean Squarred Error:', test_mse)
+```
+
+    Train Mean Squarred Error: 21.620204537961026
+    Test Mean Squarred Error: 22.547316698156916
+
 
 If your test error is substantially worse then our train error, this is a sign that our model doesn't generalize well to future cases.
 
@@ -83,7 +224,39 @@ Iterate over a range of train-test split sizes from .5 to .95. For each of these
 
 
 
-![png](index_files/index_14_1.png)
+![png](index_files/index_32_1.png)
+
+
+
+```python
+# __SOLUTION__ 
+import random
+random.seed(11)
+
+train_err = []
+test_err = []
+t_sizes = list(range(5,100,5))
+for t_size in t_sizes:
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=t_size/100)
+    linreg.fit(X_train, y_train)
+    y_hat_train = linreg.predict(X_train)
+    y_hat_test = linreg.predict(X_test)
+    train_err.append(mean_squared_error(y_train, y_hat_train))
+    test_err.append(mean_squared_error(y_test, y_hat_test))
+plt.scatter(t_sizes, train_err, label='Training Error')
+plt.scatter(t_sizes, test_err, label='Testing Error')
+plt.legend()
+```
+
+
+
+
+    <matplotlib.legend.Legend at 0x1a24d6cef0>
+
+
+
+
+![png](index_files/index_33_1.png)
 
 
 # Evaluating the effect of train-test split size: extension
@@ -103,7 +276,43 @@ Repeat the previous example, but for each train-test split size, generate 100 it
 
 
 
-![png](index_files/index_16_1.png)
+![png](index_files/index_35_1.png)
+
+
+
+```python
+# __SOLUTION__ 
+random.seed(8)
+
+train_err = []
+test_err = []
+t_sizes = list(range(5,100,5))
+for t_size in t_sizes:
+    temp_train_err = []
+    temp_test_err = []
+    for i in range(100):
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=t_size/100)
+        linreg.fit(X_train, y_train)
+        y_hat_train = linreg.predict(X_train)
+        y_hat_test = linreg.predict(X_test)
+        temp_train_err.append(mean_squared_error(y_train, y_hat_train))
+        temp_test_err.append(mean_squared_error(y_test, y_hat_test))
+    train_err.append(np.mean(temp_train_err))
+    test_err.append(np.mean(temp_test_err))
+plt.scatter(t_sizes, train_err, label='Training Error')
+plt.scatter(t_sizes, test_err, label='Testing Error')
+plt.legend()
+```
+
+
+
+
+    <matplotlib.legend.Legend at 0x1a26e93438>
+
+
+
+
+![png](index_files/index_36_1.png)
 
 
 What's happening here? evaluate your result!
