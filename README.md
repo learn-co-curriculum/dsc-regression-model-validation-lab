@@ -3,7 +3,7 @@
 
 ## Introduction
 
-In this lab, you'll be able to validate your model using train-test-split.
+In this lab, you'll be able to validate your Boston Housing data model using train-test split.
 
 
 ## Objectives
@@ -29,44 +29,83 @@ from sklearn.datasets import load_boston
 boston = load_boston()
 
 boston_features = pd.DataFrame(boston.data, columns = boston.feature_names)
-b = boston_features["B"]
-logdis = np.log(boston_features["DIS"])
-loglstat = np.log(boston_features["LSTAT"])
+b = boston_features['B']
+logdis = np.log(boston_features['DIS'])
+loglstat = np.log(boston_features['LSTAT'])
 
-# minmax scaling
-boston_features["B"] = (b-min(b))/(max(b)-min(b))
-boston_features["DIS"] = (logdis-min(logdis))/(max(logdis)-min(logdis))
+# Min-Max scaling
+boston_features['B'] = (b-min(b))/(max(b)-min(b))
+boston_features['DIS'] = (logdis-min(logdis))/(max(logdis)-min(logdis))
 
-#standardization
-boston_features["LSTAT"] = (loglstat-np.mean(loglstat))/np.sqrt(np.var(loglstat))
+# Standardization
+boston_features['LSTAT'] = (loglstat-np.mean(loglstat))/np.sqrt(np.var(loglstat))
 ```
 
 
 ```python
 X = boston_features[['CHAS', 'RM', 'DIS', 'B', 'LSTAT']]
-y = None
+y = pd.DataFrame(boston.target, columns = ['target'])
 ```
 
-## Perform a train-test-split
+### Perform a train-test split
 
-## Apply your model to the train set
 
-#### Importing and initializing the model class
+```python
+# Split the data into training and test sets. Use the default split size
 
-#### Fitting the model to the train data
+```
 
-#### Calculating predictions on the train set, and on the test set
+### Apply your model to the train set
 
-#### Calculating your residuals
 
-#### Calculating the Mean Squared Error
-A good way to compare overall performance is to compare the mean squarred error for the predicted values on the train and test sets.
+```python
+# Importing and initialize the linear regression model class
 
-If your test error is substantially worse then our train error, this is a sign that our model doesn't generalize well to future cases.
+```
 
-One simple way to demonstrate overfitting and underfitting is to alter the size of our train test split. By default, scikit learn's built in method allocates 25% of the data to the test set and 75% to the training set. Fitting a model on only 10% of the data is apt to lead to underfitting, while training a model on 99% of the data is apt to lead to overfitting.
 
-# Evaluating the effect of train-test split size
+```python
+# Fit the model to train data
+
+```
+
+### Calculate predictions on training and test sets
+
+
+```python
+# Calculate predictions on training and test sets
+
+```
+
+### Calculate training and test residuals
+
+
+```python
+# Calculate residuals
+
+```
+
+### Calculate the Mean Squared Error (MSE)
+
+A good way to compare overall performance is to compare the mean squarred error for the predicted values on the training and test sets.
+
+
+```python
+# Import mean_squared_error from sklearn.metrics
+
+```
+
+
+```python
+# Calculate training and test MSE
+
+```
+
+If your test error is substantially worse than the train error, this is a sign that the model doesn't generalize well to future cases.
+
+One simple way to demonstrate overfitting and underfitting is to alter the size of our train-test split. By default, scikit-learn allocates 25% of the data to the test set and 75% to the training set. Fitting a model on only 10% of the data is apt to lead to underfitting, while training a model on 99% of the data is apt to lead to overfitting.
+
+# Evaluate the effect of train-test split size
 
 Iterate over a range of train-test split sizes from .5 to .95. For each of these, generate a new train/test split sample. Fit a model to the training sample and calculate both the training error and the test error (mse) for each of these splits. Plot these two curves (train error vs. training size and test error vs. training size) on a graph.
 
@@ -83,10 +122,10 @@ Iterate over a range of train-test split sizes from .5 to .95. For each of these
 
 
 
-![png](index_files/index_14_1.png)
+![png](index_files/index_19_1.png)
 
 
-# Evaluating the effect of train-test split size: extension
+# Evaluate the effect of train-test split size: Extension
 
 Repeat the previous example, but for each train-test split size, generate 100 iterations of models/errors and save the average train/test error. This will help account for any particularly good/bad models that might have resulted from poor/good splits in the data. 
 
@@ -103,11 +142,11 @@ Repeat the previous example, but for each train-test split size, generate 100 it
 
 
 
-![png](index_files/index_16_1.png)
+![png](index_files/index_21_1.png)
 
 
-What's happening here? evaluate your result!
+What's happening here? Evaluate your result!
 
 ##  Summary 
 
-Congratulations! You now practiced your knowledge on MSE and on using train-test-split.
+Congratulations! You now practiced your knowledge on MSE and on using train-test split.
