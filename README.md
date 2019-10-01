@@ -44,7 +44,7 @@ boston_features['LSTAT'] = (loglstat-np.mean(loglstat))/np.sqrt(np.var(loglstat)
 
 ```python
 X = boston_features[['CHAS', 'RM', 'DIS', 'B', 'LSTAT']]
-y = pd.DataFrame(boston.target, columns = ["target"])
+y = pd.DataFrame(boston.target, columns = ['target'])
 ```
 
 
