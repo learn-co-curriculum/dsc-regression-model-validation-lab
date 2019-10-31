@@ -10,8 +10,7 @@ In this lab, you'll be able to validate your Boston Housing data model using tra
 
 You will be able to:
 
-- Calculate the mean squared error (MSE) as a measure of predictive performance
-- Validate the model using the test data
+- Compare training and testing errors to determine if model is over or underfitting
 
 
 ## Let's use our Boston Housing Data again!
@@ -207,4 +206,4 @@ What's happening here? Evaluate your result!
 
 ##  Summary 
 
-Congratulations! You now practiced your knowledge on MSE and on using train-test split.
+Congratulations! You now practiced your knowledge of MSE and used your train-test split skills to validate your model.
