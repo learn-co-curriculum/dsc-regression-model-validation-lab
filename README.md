@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 
 ames = pd.read_csv('ames.csv')
 
+# using 9 predictive categorical or continuous features, plus the target SalePrice
 continuous = ['LotArea', '1stFlrSF', 'GrLivArea', 'SalePrice']
 categoricals = ['BldgType', 'KitchenQual', 'SaleType', 'MSZoning', 'Street', 'Neighborhood']
 
