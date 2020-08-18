@@ -3,7 +3,7 @@
 
 ## Introduction
 
-In this lab, you'll be able to validate your Boston Housing data model using train-test split.
+In this lab, you'll be able to validate your Ames Housing data model using train-test split.
 
 
 ## Objectives
@@ -13,9 +13,9 @@ You will be able to:
 - Compare training and testing errors to determine if model is over or underfitting
 
 
-## Let's use our Boston Housing Data again!
+## Let's use our Ames Housing Data again!
 
-This time, let's only include the variables that were previously selected using recursive feature elimination. We included the code to preprocess below.
+We included the code to preprocess below.
 
 
 ```python
@@ -23,27 +23,37 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 %matplotlib inline
-from sklearn.datasets import load_boston
 
-boston = load_boston()
+ames = pd.read_csv('ames.csv')
 
-boston_features = pd.DataFrame(boston.data, columns = boston.feature_names)
-b = boston_features['B']
-logdis = np.log(boston_features['DIS'])
-loglstat = np.log(boston_features['LSTAT'])
+continuous = ['LotArea', '1stFlrSF', 'GrLivArea', 'SalePrice']
+categoricals = ['BldgType', 'KitchenQual', 'SaleType', 'MSZoning', 'Street', 'Neighborhood']
 
-# Min-Max scaling
-boston_features['B'] = (b-min(b))/(max(b)-min(b))
-boston_features['DIS'] = (logdis-min(logdis))/(max(logdis)-min(logdis))
+ames_cont = ames[continuous]
 
-# Standardization
-boston_features['LSTAT'] = (loglstat-np.mean(loglstat))/np.sqrt(np.var(loglstat))
+# log features
+log_names = [f'{column}_log' for column in ames_cont.columns]
+
+ames_log = np.log(ames_cont)
+ames_log.columns = log_names
+
+# normalize (subract mean and divide by std)
+
+def normalize(feature):
+    return (feature - feature.mean()) / feature.std()
+
+ames_log_norm = ames_log.apply(normalize)
+
+# one hot encode categoricals
+ames_ohe = pd.get_dummies(ames[categoricals], prefix=categoricals, drop_first=True)
+
+preprocessed = pd.concat([ames_log_norm, ames_ohe], axis=1)
 ```
 
 
 ```python
-X = boston_features[['CHAS', 'RM', 'DIS', 'B', 'LSTAT']]
-y = pd.DataFrame(boston.target, columns = ['target'])
+X = preprocessed.drop('SalePrice_log', axis=1)
+y = preprocessed['SalePrice_log']
 ```
 
 ### Perform a train-test split
@@ -64,26 +74,28 @@ X_train, X_test, y_train, y_test = train_test_split(X, y)
 print(len(X_train), len(X_test), len(y_train), len(y_test))
 ```
 
-    379 127 379 127
+    1095 365 1095 365
 
 
 ### Apply your model to the train set
 
 
 ```python
+# Import and initialize the linear regression model class
 from sklearn.linear_model import LinearRegression
 linreg = LinearRegression()
 ```
 
 
 ```python
+# Fit the model to train data
 linreg.fit(X_train, y_train)
 ```
 
 
 
 
-    LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False)
+    LinearRegression(copy_X=True, fit_intercept=True, n_jobs=None, normalize=False)
 
 
 
@@ -109,19 +121,23 @@ A good way to compare overall performance is to compare the mean squarred error 
 
 
 ```python
+# Import mean_squared_error from sklearn.metrics
+
 from sklearn.metrics import mean_squared_error
 ```
 
 
 ```python
+# Calculate training and test MSE
+
 train_mse = mean_squared_error(y_train, y_hat_train)
 test_mse = mean_squared_error(y_test, y_hat_test)
 print('Train Mean Squarred Error:', train_mse)
 print('Test Mean Squarred Error:', test_mse)
 ```
 
-    Train Mean Squarred Error: 21.620204537961026
-    Test Mean Squarred Error: 22.547316698156916
+    Train Mean Squarred Error: 0.16048852081383122
+    Test Mean Squarred Error: 0.17608437252990491
 
 
 If your test error is substantially worse than the train error, this is a sign that the model doesn't generalize well to future cases.
@@ -135,7 +151,7 @@ Iterate over a range of train-test split sizes from .5 to .95. For each of these
 
 ```python
 import random
-random.seed(11)
+random.seed(110)
 
 train_err = []
 test_err = []
@@ -155,7 +171,7 @@ plt.legend()
 
 
 
-    <matplotlib.legend.Legend at 0x1a24d6cef0>
+    <matplotlib.legend.Legend at 0x1a19109390>
 
 
 
@@ -165,19 +181,19 @@ plt.legend()
 
 # Evaluate the effect of train-test split size: Extension
 
-Repeat the previous example, but for each train-test split size, generate 100 iterations of models/errors and save the average train/test error. This will help account for any particularly good/bad models that might have resulted from poor/good splits in the data. 
+Repeat the previous example, but for each train-test split size, generate 10 iterations of models/errors and save the average train/test error. This will help account for any particularly good/bad models that might have resulted from poor/good splits in the data. 
 
 
 ```python
-random.seed(8)
+random.seed(900)
 
 train_err = []
 test_err = []
-t_sizes = list(range(5,100,5))
+t_sizes = range(5,100,5)
 for t_size in t_sizes:
     temp_train_err = []
     temp_test_err = []
-    for i in range(100):
+    for i in range(10):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=t_size/100)
         linreg.fit(X_train, y_train)
         y_hat_train = linreg.predict(X_train)
@@ -194,7 +210,7 @@ plt.legend()
 
 
 
-    <matplotlib.legend.Legend at 0x1a26e93438>
+    <matplotlib.legend.Legend at 0x1a1b21dd68>
 
 
 
