@@ -1,62 +1,372 @@
-
 # Regression Model Validation - Lab
 
 ## Introduction
 
-In this lab, you'll be able to validate your Ames Housing data model using train-test split.
-
+In this lab, you'll be able to validate your Ames Housing data model using a train-test split.
 
 ## Objectives
 
 You will be able to:
 
-- Compare training and testing errors to determine if model is over or underfitting
+* Perform a train-test split
+* Prepare training and testing data for modeling
+* Compare training and testing errors to determine if model is over or underfitting
 
+## Let's Use Our Ames Housing Data Again!
 
-## Let's use our Ames Housing Data again!
-
-We included the code to preprocess below.
+We included the code to load the data below.
 
 
 ```python
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-%matplotlib inline
-
-ames = pd.read_csv('ames.csv')
-
-continuous = ['LotArea', '1stFlrSF', 'GrLivArea', 'SalePrice']
-categoricals = ['BldgType', 'KitchenQual', 'SaleType', 'MSZoning', 'Street', 'Neighborhood']
-
-ames_cont = ames[continuous]
-
-# log features
-log_names = [f'{column}_log' for column in ames_cont.columns]
-
-ames_log = np.log(ames_cont)
-ames_log.columns = log_names
-
-# normalize (subract mean and divide by std)
-
-def normalize(feature):
-    return (feature - feature.mean()) / feature.std()
-
-ames_log_norm = ames_log.apply(normalize)
-
-# one hot encode categoricals
-ames_ohe = pd.get_dummies(ames[categoricals], prefix=categoricals, drop_first=True)
-
-preprocessed = pd.concat([ames_log_norm, ames_ohe], axis=1)
+ames = pd.read_csv('ames.csv', index_col=0)
+ames
 ```
 
 
-```python
-X = preprocessed.drop('SalePrice_log', axis=1)
-y = preprocessed['SalePrice_log']
-```
 
-### Perform a train-test split
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>MSSubClass</th>
+      <th>MSZoning</th>
+      <th>LotFrontage</th>
+      <th>LotArea</th>
+      <th>Street</th>
+      <th>Alley</th>
+      <th>LotShape</th>
+      <th>LandContour</th>
+      <th>Utilities</th>
+      <th>LotConfig</th>
+      <th>...</th>
+      <th>PoolArea</th>
+      <th>PoolQC</th>
+      <th>Fence</th>
+      <th>MiscFeature</th>
+      <th>MiscVal</th>
+      <th>MoSold</th>
+      <th>YrSold</th>
+      <th>SaleType</th>
+      <th>SaleCondition</th>
+      <th>SalePrice</th>
+    </tr>
+    <tr>
+      <th>Id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>60</td>
+      <td>RL</td>
+      <td>65.0</td>
+      <td>8450</td>
+      <td>Pave</td>
+      <td>NaN</td>
+      <td>Reg</td>
+      <td>Lvl</td>
+      <td>AllPub</td>
+      <td>Inside</td>
+      <td>...</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>2</td>
+      <td>2008</td>
+      <td>WD</td>
+      <td>Normal</td>
+      <td>208500</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>20</td>
+      <td>RL</td>
+      <td>80.0</td>
+      <td>9600</td>
+      <td>Pave</td>
+      <td>NaN</td>
+      <td>Reg</td>
+      <td>Lvl</td>
+      <td>AllPub</td>
+      <td>FR2</td>
+      <td>...</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>5</td>
+      <td>2007</td>
+      <td>WD</td>
+      <td>Normal</td>
+      <td>181500</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>60</td>
+      <td>RL</td>
+      <td>68.0</td>
+      <td>11250</td>
+      <td>Pave</td>
+      <td>NaN</td>
+      <td>IR1</td>
+      <td>Lvl</td>
+      <td>AllPub</td>
+      <td>Inside</td>
+      <td>...</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>9</td>
+      <td>2008</td>
+      <td>WD</td>
+      <td>Normal</td>
+      <td>223500</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>70</td>
+      <td>RL</td>
+      <td>60.0</td>
+      <td>9550</td>
+      <td>Pave</td>
+      <td>NaN</td>
+      <td>IR1</td>
+      <td>Lvl</td>
+      <td>AllPub</td>
+      <td>Corner</td>
+      <td>...</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>2</td>
+      <td>2006</td>
+      <td>WD</td>
+      <td>Abnorml</td>
+      <td>140000</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>60</td>
+      <td>RL</td>
+      <td>84.0</td>
+      <td>14260</td>
+      <td>Pave</td>
+      <td>NaN</td>
+      <td>IR1</td>
+      <td>Lvl</td>
+      <td>AllPub</td>
+      <td>FR2</td>
+      <td>...</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>12</td>
+      <td>2008</td>
+      <td>WD</td>
+      <td>Normal</td>
+      <td>250000</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>1456</th>
+      <td>60</td>
+      <td>RL</td>
+      <td>62.0</td>
+      <td>7917</td>
+      <td>Pave</td>
+      <td>NaN</td>
+      <td>Reg</td>
+      <td>Lvl</td>
+      <td>AllPub</td>
+      <td>Inside</td>
+      <td>...</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>8</td>
+      <td>2007</td>
+      <td>WD</td>
+      <td>Normal</td>
+      <td>175000</td>
+    </tr>
+    <tr>
+      <th>1457</th>
+      <td>20</td>
+      <td>RL</td>
+      <td>85.0</td>
+      <td>13175</td>
+      <td>Pave</td>
+      <td>NaN</td>
+      <td>Reg</td>
+      <td>Lvl</td>
+      <td>AllPub</td>
+      <td>Inside</td>
+      <td>...</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>MnPrv</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>2</td>
+      <td>2010</td>
+      <td>WD</td>
+      <td>Normal</td>
+      <td>210000</td>
+    </tr>
+    <tr>
+      <th>1458</th>
+      <td>70</td>
+      <td>RL</td>
+      <td>66.0</td>
+      <td>9042</td>
+      <td>Pave</td>
+      <td>NaN</td>
+      <td>Reg</td>
+      <td>Lvl</td>
+      <td>AllPub</td>
+      <td>Inside</td>
+      <td>...</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>GdPrv</td>
+      <td>Shed</td>
+      <td>2500</td>
+      <td>5</td>
+      <td>2010</td>
+      <td>WD</td>
+      <td>Normal</td>
+      <td>266500</td>
+    </tr>
+    <tr>
+      <th>1459</th>
+      <td>20</td>
+      <td>RL</td>
+      <td>68.0</td>
+      <td>9717</td>
+      <td>Pave</td>
+      <td>NaN</td>
+      <td>Reg</td>
+      <td>Lvl</td>
+      <td>AllPub</td>
+      <td>Inside</td>
+      <td>...</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>4</td>
+      <td>2010</td>
+      <td>WD</td>
+      <td>Normal</td>
+      <td>142125</td>
+    </tr>
+    <tr>
+      <th>1460</th>
+      <td>20</td>
+      <td>RL</td>
+      <td>75.0</td>
+      <td>9937</td>
+      <td>Pave</td>
+      <td>NaN</td>
+      <td>Reg</td>
+      <td>Lvl</td>
+      <td>AllPub</td>
+      <td>Inside</td>
+      <td>...</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0</td>
+      <td>6</td>
+      <td>2008</td>
+      <td>WD</td>
+      <td>Normal</td>
+      <td>147500</td>
+    </tr>
+  </tbody>
+</table>
+<p>1460 rows × 80 columns</p>
+</div>
+
+
+
+## Perform a Train-Test Split
+
+Use `train_test_split` ([documentation here](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html)) with the default split size. At the end you should have `X_train`, `X_test`, `y_train`, and `y_test` variables, where `y` represents `SalePrice` and `X` represents all other columns.
 
 
 ```python
@@ -65,41 +375,70 @@ from sklearn.model_selection import train_test_split
 
 
 ```python
-X_train, X_test, y_train, y_test = train_test_split(X, y)
+X = ames.drop("SalePrice", axis=1)
+y = ames["SalePrice"]
 ```
 
 
 ```python
-# A brief preview of our train test split
-print(len(X_train), len(X_test), len(y_train), len(y_test))
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
 ```
 
-    1095 365 1095 365
+## Prepare Both Sets for Modeling
 
-
-### Apply your model to the train set
+This code is completed for you and should work as long as the correct variables were created.
 
 
 ```python
-# Import and initialize the linear regression model class
+from sklearn.preprocessing import FunctionTransformer, OneHotEncoder
+
+continuous = ['LotArea', '1stFlrSF', 'GrLivArea']
+categoricals = ['BldgType', 'KitchenQual', 'Street']
+
+# Instantiate transformers
+log_transformer = FunctionTransformer(np.log, validate=True)
+ohe = OneHotEncoder(drop='first', sparse=False)
+
+# Fit transformers
+log_transformer.fit(X_train[continuous])
+ohe.fit(X_train[categoricals])
+
+# Transform training data
+X_train = pd.concat([
+    pd.DataFrame(log_transformer.transform(X_train[continuous]), index=X_train.index),
+    pd.DataFrame(ohe.transform(X_train[categoricals]), index=X_train.index)
+], axis=1)
+
+# Transform test data
+X_test = pd.concat([
+    pd.DataFrame(log_transformer.transform(X_test[continuous]), index=X_test.index),
+    pd.DataFrame(ohe.transform(X_test[categoricals]), index=X_test.index)
+], axis=1)
+```
+
+## Fit a Linear Regression on the Training Data
+
+
+```python
 from sklearn.linear_model import LinearRegression
 linreg = LinearRegression()
 ```
 
 
 ```python
-# Fit the model to train data
 linreg.fit(X_train, y_train)
 ```
 
 
 
 
-    LinearRegression(copy_X=True, fit_intercept=True, n_jobs=None, normalize=False)
+    LinearRegression()
 
 
 
-### Calculate predictions on training and test sets
+## Evaluate and Validate Model
+
+### Generate Predictions on Training and Test Sets
 
 
 ```python
@@ -107,115 +446,142 @@ y_hat_train = linreg.predict(X_train)
 y_hat_test = linreg.predict(X_test)
 ```
 
-### Calculate training and test residuals
-
-
-```python
-train_residuals = y_hat_train - y_train
-test_residuals = y_hat_test - y_test
-```
-
 ### Calculate the Mean Squared Error (MSE)
 
-A good way to compare overall performance is to compare the mean squarred error for the predicted values on the training and test sets.
+You can use `mean_squared_error` from scikit-learn ([documentation here](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html)).
 
 
 ```python
-# Import mean_squared_error from sklearn.metrics
-
 from sklearn.metrics import mean_squared_error
 ```
 
 
 ```python
-# Calculate training and test MSE
-
 train_mse = mean_squared_error(y_train, y_hat_train)
 test_mse = mean_squared_error(y_test, y_hat_test)
-print('Train Mean Squarred Error:', train_mse)
-print('Test Mean Squarred Error:', test_mse)
+print('Train Mean Squared Error:', train_mse)
+print('Test Mean Squared Error: ', test_mse)
 ```
 
-    Train Mean Squarred Error: 0.16048852081383122
-    Test Mean Squarred Error: 0.17608437252990491
+    Train Mean Squared Error: 1817188281.1940153
+    Test Mean Squared Error:  1852373150.018941
 
 
 If your test error is substantially worse than the train error, this is a sign that the model doesn't generalize well to future cases.
 
 One simple way to demonstrate overfitting and underfitting is to alter the size of our train-test split. By default, scikit-learn allocates 25% of the data to the test set and 75% to the training set. Fitting a model on only 10% of the data is apt to lead to underfitting, while training a model on 99% of the data is apt to lead to overfitting.
 
-# Evaluate the effect of train-test split size
+## Level Up: Evaluate the Effect of Train-Test Split Size
 
-Iterate over a range of train-test split sizes from .5 to .95. For each of these, generate a new train/test split sample. Fit a model to the training sample and calculate both the training error and the test error (mse) for each of these splits. Plot these two curves (train error vs. training size and test error vs. training size) on a graph.
+Iterate over a range of train-test split sizes from .5 to .9. For each of these, generate a new train/test split sample. Preprocess both sets of data. Fit a model to the training sample and calculate both the training error and the test error (MSE) for each of these splits. Plot these two curves (train error vs. training size and test error vs. training size) on a graph.
 
 
 ```python
-import random
-random.seed(110)
+import matplotlib.pyplot as plt
 
-train_err = []
-test_err = []
-t_sizes = list(range(5,100,5))
+train_mses = []
+test_mses = []
+
+t_sizes = np.linspace(0.5, 0.9, 10)
 for t_size in t_sizes:
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=t_size/100)
+    
+    # Create new split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=t_size, random_state=42)
+
+    # Fit transformers on new train and test
+    log_transformer.fit(X_train[continuous])
+    ohe.fit(X_train[categoricals])
+
+    # Transform training data
+    X_train = pd.concat([
+        pd.DataFrame(log_transformer.transform(X_train[continuous]), index=X_train.index),
+        pd.DataFrame(ohe.transform(X_train[categoricals]), index=X_train.index)
+    ], axis=1)
+
+    # Transform test data
+    X_test = pd.concat([
+        pd.DataFrame(log_transformer.transform(X_test[continuous]), index=X_test.index),
+        pd.DataFrame(ohe.transform(X_test[categoricals]), index=X_test.index)
+    ], axis=1)
+
+    # Fit model
     linreg.fit(X_train, y_train)
+
+    # Append metrics to their respective lists
     y_hat_train = linreg.predict(X_train)
     y_hat_test = linreg.predict(X_test)
-    train_err.append(mean_squared_error(y_train, y_hat_train))
-    test_err.append(mean_squared_error(y_test, y_hat_test))
-plt.scatter(t_sizes, train_err, label='Training Error')
-plt.scatter(t_sizes, test_err, label='Testing Error')
-plt.legend()
+    train_mses.append(mean_squared_error(y_train, y_hat_train))
+    test_mses.append(mean_squared_error(y_test, y_hat_test))
+
+fig, ax = plt.subplots()
+ax.scatter(t_sizes, train_mses, label='Training Error')
+ax.scatter(t_sizes, test_mses, label='Testing Error')
+ax.legend();
 ```
 
 
+    
+![png](index_files/index_20_0.png)
+    
 
 
-    <matplotlib.legend.Legend at 0x1a19109390>
-
-
-
-
-![png](index_files/index_21_1.png)
-
-
-# Evaluate the effect of train-test split size: Extension
+### Extension
 
 Repeat the previous example, but for each train-test split size, generate 10 iterations of models/errors and save the average train/test error. This will help account for any particularly good/bad models that might have resulted from poor/good splits in the data. 
 
 
 ```python
-random.seed(900)
 
-train_err = []
-test_err = []
-t_sizes = range(5,100,5)
+train_mses = []
+test_mses = []
+
+t_sizes = np.linspace(0.5, 0.9, 10)
 for t_size in t_sizes:
-    temp_train_err = []
-    temp_test_err = []
+    
+    inner_train_mses = []
+    inner_test_mses = []
     for i in range(10):
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=t_size/100)
+        # Create new split
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=t_size, random_state=i)
+        
+        # Skipping fitting the transformers; data quality issues cause too many OHE problems when
+        # fitting this number of different models, but if you don't use drop='first' the
+        # multicollinearity issues get pretty bad
+
+        # Transform training data
+        X_train = pd.concat([
+            pd.DataFrame(log_transformer.transform(X_train[continuous]), index=X_train.index),
+            pd.DataFrame(ohe.transform(X_train[categoricals]), index=X_train.index)
+        ], axis=1)
+
+        # Transform test data
+        X_test = pd.concat([
+            pd.DataFrame(log_transformer.transform(X_test[continuous]), index=X_test.index),
+            pd.DataFrame(ohe.transform(X_test[categoricals]), index=X_test.index)
+        ], axis=1)
+
+        # Fit model
         linreg.fit(X_train, y_train)
+
+        # Append metrics to their respective lists
         y_hat_train = linreg.predict(X_train)
         y_hat_test = linreg.predict(X_test)
-        temp_train_err.append(mean_squared_error(y_train, y_hat_train))
-        temp_test_err.append(mean_squared_error(y_test, y_hat_test))
-    train_err.append(np.mean(temp_train_err))
-    test_err.append(np.mean(temp_test_err))
-plt.scatter(t_sizes, train_err, label='Training Error')
-plt.scatter(t_sizes, test_err, label='Testing Error')
-plt.legend()
+        inner_train_mses.append(mean_squared_error(y_train, y_hat_train))
+        inner_test_mses.append(mean_squared_error(y_test, y_hat_test))
+
+    train_mses.append(np.mean(inner_train_mses))
+    test_mses.append(np.mean(inner_test_mses))
+
+fig, ax = plt.subplots()
+ax.scatter(t_sizes, train_mses, label='Average Training Error')
+ax.scatter(t_sizes, test_mses, label='Average Testing Error')
+ax.legend();
 ```
 
 
-
-
-    <matplotlib.legend.Legend at 0x1a1b21dd68>
-
-
-
-
-![png](index_files/index_23_1.png)
+    
+![png](index_files/index_22_0.png)
+    
 
 
 What's happening here? Evaluate your result!
