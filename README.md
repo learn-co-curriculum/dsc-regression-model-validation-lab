@@ -417,7 +417,7 @@ categoricals = ['BldgType', 'KitchenQual', 'Street']
 
 # Instantiate transformers
 log_transformer = FunctionTransformer(np.log, validate=True)
-ohe = OneHotEncoder(drop='first', sparse=False)
+ohe = OneHotEncoder(drop='first', sparse_output=False)
 
 # Fit transformers
 log_transformer.fit(X_train[continuous])
@@ -446,7 +446,7 @@ categoricals = ['BldgType', 'KitchenQual', 'Street']
 
 # Instantiate transformers
 log_transformer = FunctionTransformer(np.log, validate=True)
-ohe = OneHotEncoder(drop='first', sparse=False)
+ohe = OneHotEncoder(drop='first', sparse_output=False)
 
 # Fit transformers
 log_transformer.fit(X_train[continuous])
